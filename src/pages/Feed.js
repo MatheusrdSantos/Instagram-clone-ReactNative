@@ -1,9 +1,16 @@
 import React, { Component } from 'react';
 
-import { View } from 'react-native';
-
+import { View, Image, TouchableOpacity } from 'react-native';
+import camera from '../assets/camera.png';
 export default class Feed extends Component {
-  render() {
-    return <View />;
-  }
+    static navigationOptions = ({navigation}) => ({
+        headerRight: (
+            <TouchableOpacity style={{marginRight:20}} onPress={()=>{navigation.navigate('New')}}>
+                <Image source={camera}></Image>
+            </TouchableOpacity>
+        ),
+    })
+    render() {
+        return <View />;
+    }
 }

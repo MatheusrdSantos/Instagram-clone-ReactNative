@@ -1,24 +1,81 @@
 import React, { Component } from 'react';
-
+import ImagePicker from 'react-native-image-picker';
 import { View, StyleSheet, TouchableOpacity, Text, TextInput, Image} from 'react-native';
-
+import api from '../services/api';
 export default class New extends Component {
     static navigationOptions = {
         headerTitle: 'Nova publicação'
     };
     state = {
+        preview: null,
         author: '',
         place: '',
         description: '',
-        hashtags: ''
+        hashtags: '',
+        image: null
+    }
+
+    handleSelectImage = () =>{
+        ImagePicker.showImagePicker({
+            title: 'Selecionar imagem',
+
+        }, upload => {
+            if(upload.error){
+                console.log('error');
+            }else if(upload.didCancel){
+                console.log('userCanceled');
+            }else{
+                const preview = {
+                    uri: `data:image/jpeg;base64,${upload.data}`,
+                }
+
+                let prefix;
+                let ext;
+                if(upload.fileName){
+                    [prefix, ext] = upload.fileName.split('.')
+                    ext = ext.toLowerCase() == 'heic'? 'jpg':ext;
+                }else{
+                    prefix = new Date().getTime();
+                    ext = 'jpg';
+                }
+
+                const image = {
+                    uri: upload.uri,
+                    type: upload.type,
+                    name: `${prefix}.${ext}`
+                }
+
+                this.setState({preview, image})
+            }
+        }
+        );
+    }
+
+    handleSubmit = () => {
+        //console.log(this.state);
+        const formData = new FormData();
+        formData.append("image", this.state.image);
+        formData.append("author", this.state.author);
+        formData.append("place", this.state.place);
+        formData.append("description", this.state.description);
+        formData.append("hashtags", this.state.hashtags);
+        api({
+            method: "post",
+            url: "posts",
+            data: formData
+        }).then(res => {
+            console.log(res);
+        }).catch(err => console.log(err));
+        this.props.navigation.navigate('Feed');
     }
     render() {
         return (
             <View style={styles.container}>
-                <TouchableOpacity style={styles.selectButton} onPress={() => {}}>
+                <TouchableOpacity style={styles.selectButton} onPress={() => {this.handleSelectImage()}}>
                     <Text style={styles.selectButtonText}>Selecionar Imagem</Text>
                 </TouchableOpacity>
 
+                {this.state.preview && <Image style={styles.preview} source={this.state.preview}/> }
                 <TextInput
                     style={styles.input}
                     autoCorrect={false}
@@ -56,7 +113,7 @@ export default class New extends Component {
                     onChangeText={hashtags=>{this.setState({hashtags})}}
                 />
 
-                <TouchableOpacity style={styles.shareButton} onPress={() => {}}>
+                <TouchableOpacity style={styles.shareButton} onPress={() => {this.handleSubmit()}}>
                     <Text style={styles.shareButtonText}>Compartilhar Imagem</Text>
                 </TouchableOpacity>
             </View>

@@ -20,11 +20,14 @@ export default class Feed extends Component {
         feed: []
     }
 
-    async componentDidMount(){
+    componentDidMount(){
         this.registerToSocket();
-        const response = await api.get('posts');
-        console.log(response);
-        this.setState({feed: response.data});
+        api.get('posts').then(res => {
+            console.log(res.data);
+            this.setState({feed: res.data});
+        }).catch(err => {
+            alert('Sem conexão com o servidor');
+        });;
     }
 
     registerToSocket = () => {
